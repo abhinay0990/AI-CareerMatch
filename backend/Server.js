@@ -28,7 +28,17 @@ app.use(helmet());
 
 
 // CORS
-app.use(cors());
+
+app.use(
+    cors({
+        origin: [
+            "http://localhost:5173",
+            "https://ai-career-match.vercel.app"
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"]
+    })
+);
 
 
 // Parse JSON requests
