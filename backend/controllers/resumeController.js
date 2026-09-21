@@ -1,9 +1,11 @@
 const fs = require("fs");
+const path = require("path");
+
 const Resume = require("../models/Resume");
 const { PDFParse } = require("pdf-parse");
+
 const uploadResume = async (req, res) => {
     try {
-
         // 1. Check whether a file was uploaded
         if (!req.file) {
             return res.status(400).json({
@@ -12,33 +14,51 @@ const uploadResume = async (req, res) => {
             });
         }
 
-        // 2. Read the uploaded PDF file
-        const pdfBuffer = fs.readFileSync(req.file.path);
+        // 2. Build the absolute path to the uploaded PDF
+        const filePath = path.join(
+            __dirname,
+            "..",
+            req.file.path
+        );
 
-        // 3. Extract text from the PDF
-    const parser = new PDFParse({
-    data: pdfBuffer
-});
+        console.log("Uploaded file path:", req.file.path);
+        console.log("Absolute file path:", filePath);
 
-const pdfData = await parser.getText();
+        // 3. Check whether the file exists
+        if (!fs.existsSync(filePath)) {
+            console.error("File not found:", filePath);
 
-const extractedText = pdfData.text;
+            return res.status(500).json({
+                success: false,
+                message: "Uploaded file could not be found"
+            });
+        }
 
-await parser.destroy();
+        // 4. Read the uploaded PDF
+        const pdfBuffer = fs.readFileSync(filePath);
 
-        // 5. Save resume details in MongoDB
+        // 5. Extract text from the PDF
+        const parser = new PDFParse({
+            data: pdfBuffer
+        });
+
+        const pdfData = await parser.getText();
+        const extractedText = pdfData.text;
+
+        await parser.destroy();
+
+        // 6. Save resume details in MongoDB
         const resume = await Resume.create({
             userId: req.userId,
             fileName: req.file.originalname,
-            filePath: req.file.path,
+            filePath: filePath,
             extractedText: extractedText
         });
 
-        // 6. Send response
+        // 7. Send response
         res.status(201).json({
             success: true,
             message: "Resume uploaded and text extracted successfully",
-
             resume: {
                 id: resume._id,
                 fileName: resume.fileName,
@@ -47,15 +67,15 @@ await parser.destroy();
         });
 
     } catch (error) {
-
-        console.error("Resume upload error:", error.message);
+        console.error("Resume upload error:", error);
 
         res.status(500).json({
             success: false,
-            message: "Failed to process resume"
+            message: error.message || "Failed to process resume"
         });
     }
 };
+
 const getMyResume = async (req, res) => {
     try {
         const resume = await Resume.findOne({
@@ -83,7 +103,8 @@ const getMyResume = async (req, res) => {
         });
     }
 };
+
 module.exports = {
     uploadResume,
-     getMyResume
+    getMyResume
 };

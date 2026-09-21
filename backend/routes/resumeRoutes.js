@@ -1,5 +1,7 @@
 const express = require("express");
 const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const {
     uploadResume,
@@ -10,11 +12,17 @@ const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-
 // Storage configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        const uploadDir = path.join(__dirname, "../uploads");
+
+        // Create uploads folder if it doesn't exist
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        cb(null, uploadDir);
     },
 
     filename: (req, file, cb) => {
@@ -24,7 +32,6 @@ const storage = multer.diskStorage({
         cb(null, uniqueName);
     }
 });
-
 
 // Allow PDF files only
 const fileFilter = (req, file, cb) => {
@@ -38,18 +45,14 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-
 // Upload configuration
 const upload = multer({
     storage: storage,
-
     limits: {
         fileSize: 5 * 1024 * 1024
     },
-
     fileFilter: fileFilter
 });
-
 
 // Upload resume
 router.post(
@@ -59,7 +62,6 @@ router.post(
     uploadResume
 );
 
-
 // Get user's latest resume
 router.get(
     "/my-resume",
@@ -67,11 +69,9 @@ router.get(
     getMyResume
 );
 
-
 // Handle Multer errors
 router.use((error, req, res, next) => {
     if (error instanceof multer.MulterError) {
-
         if (error.code === "LIMIT_FILE_SIZE") {
             return res.status(400).json({
                 success: false,
@@ -94,6 +94,5 @@ router.use((error, req, res, next) => {
 
     next();
 });
-
 
 module.exports = router;
