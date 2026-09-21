@@ -6,7 +6,6 @@ const { PDFParse } = require("pdf-parse");
 
 const uploadResume = async (req, res) => {
     try {
-        // 1. Check whether a file was uploaded
         if (!req.file) {
             return res.status(400).json({
                 success: false,
@@ -14,30 +13,25 @@ const uploadResume = async (req, res) => {
             });
         }
 
-        // 2. Build the absolute path to the uploaded PDF
-        const filePath = path.join(
-            __dirname,
-            "..",
-            req.file.path
-        );
+        console.log("Multer file object:", req.file);
 
-        console.log("Uploaded file path:", req.file.path);
-        console.log("Absolute file path:", filePath);
+        // Multer gives us the actual uploaded file path
+        const filePath = req.file.path;
 
-        // 3. Check whether the file exists
+        console.log("Multer file path:", filePath);
+        console.log("File exists:", fs.existsSync(filePath));
+
         if (!fs.existsSync(filePath)) {
-            console.error("File not found:", filePath);
-
             return res.status(500).json({
                 success: false,
                 message: "Uploaded file could not be found"
             });
         }
 
-        // 4. Read the uploaded PDF
+        // Read PDF
         const pdfBuffer = fs.readFileSync(filePath);
 
-        // 5. Extract text from the PDF
+        // Extract PDF text
         const parser = new PDFParse({
             data: pdfBuffer
         });
@@ -47,7 +41,7 @@ const uploadResume = async (req, res) => {
 
         await parser.destroy();
 
-        // 6. Save resume details in MongoDB
+        // Save resume
         const resume = await Resume.create({
             userId: req.userId,
             fileName: req.file.originalname,
@@ -55,7 +49,6 @@ const uploadResume = async (req, res) => {
             extractedText: extractedText
         });
 
-        // 7. Send response
         res.status(201).json({
             success: true,
             message: "Resume uploaded and text extracted successfully",
