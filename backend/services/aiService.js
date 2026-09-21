@@ -79,7 +79,7 @@ Make sure:
         const response = await axios.post(
             "https://openrouter.ai/api/v1/chat/completions",
             {
-                model: "openai/gpt-oss-20b:free",
+                model: "openai/gpt-oss-20b",
                 messages: [
                     {
                         role: "user",
@@ -101,7 +101,6 @@ Make sure:
 
         console.log("AI RAW RESPONSE:", content);
 
-        // Remove possible markdown JSON fences
         const cleanedContent = content
             .replace(/```json/gi, "")
             .replace(/```/g, "")
@@ -109,13 +108,11 @@ Make sure:
 
         const result = JSON.parse(cleanedContent);
 
-        // Make sure score is always within valid range
         result.matchScore = Math.max(
             0,
             Math.min(100, Number(result.matchScore) || 0)
         );
 
-        // Make sure arrays always exist
         result.matchedSkills = Array.isArray(result.matchedSkills)
             ? result.matchedSkills
             : [];
