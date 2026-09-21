@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const Resume = require("../models/Resume");
 const Job = require("../models/Job");
 const MatchHistory = require("../models/MatchHistory");
@@ -6,34 +8,38 @@ const getDashboardStats = async (req, res) => {
     try {
         const userId = req.userId;
 
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+
         const resumeCount = await Resume.countDocuments({
-            userId
+            userId: userObjectId
         });
 
         const jobCount = await Job.countDocuments();
 
         const matchCount = await MatchHistory.countDocuments({
-            userId
+            userId: userObjectId
         });
 
         const latestResume = await Resume.findOne({
-            userId
-        }).sort({ createdAt: -1 });
+            userId: userObjectId
+        }).sort({
+            createdAt: -1
+        });
 
         const recentMatches = await MatchHistory.find({
-            userId
+            userId: userObjectId
         })
             .populate("jobId", "title company")
             .populate("resumeId", "fileName")
-            .sort({ createdAt: -1 })
+            .sort({
+                createdAt: -1
+            })
             .limit(5);
 
         const scoreData = await MatchHistory.aggregate([
             {
                 $match: {
-                    userId: latestResume
-                        ? latestResume.userId
-                        : null
+                    userId: userObjectId
                 }
             },
             {
@@ -53,20 +59,23 @@ const getDashboardStats = async (req, res) => {
 
         res.json({
             success: true,
+
             stats: {
                 resumeCount,
                 jobCount,
                 matchCount,
                 averageScore
             },
+
             latestResume,
+
             recentMatches
         });
 
     } catch (error) {
         console.error(
             "Dashboard error:",
-            error.message
+            error
         );
 
         res.status(500).json({
