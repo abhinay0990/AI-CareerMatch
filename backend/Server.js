@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -18,17 +19,16 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
+// Trust Render's reverse proxy
+app.set("trust proxy", 1);
 
 // Connect MongoDB
 connectDB();
 
-
 // Security middleware
 app.use(helmet());
 
-
 // CORS
-
 app.use(
     cors({
         origin: true,
@@ -38,7 +38,6 @@ app.use(
 
 // Parse JSON requests
 app.use(express.json());
-
 
 // Rate limiter
 const apiLimiter = rateLimit({
@@ -52,10 +51,8 @@ const apiLimiter = rateLimit({
     }
 });
 
-
 // Apply rate limit to API routes
 app.use("/api", apiLimiter);
-
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -66,7 +63,6 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/match-history", matchHistoryRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-
 // Health check
 app.get("/api/health", (req, res) => {
     res.json({
@@ -74,7 +70,6 @@ app.get("/api/health", (req, res) => {
         message: "AI CareerMatch API is running"
     });
 });
-
 
 // Start server
 app.listen(PORT, () => {
