@@ -29,9 +29,11 @@ IMPORTANT RULES:
 12. Do not recommend adding a skill that is already clearly present in the resume.
 
 RESUME:
+
 ${resumeText}
 
 JOB REQUIREMENTS:
+
 ${jobDescription}
 
 SCORING GUIDELINE:
@@ -43,6 +45,7 @@ SCORING GUIDELINE:
 0-39 = Low match
 
 Analyze:
+
 - Programming languages
 - Frameworks
 - APIs
@@ -66,6 +69,7 @@ Use exactly this structure:
 }
 
 Make sure:
+
 - matchScore is a number from 0 to 100.
 - matchedSkills contains skills found in both the resume and job requirements.
 - missingSkills contains important job requirements that are genuinely absent from the resume.
@@ -73,18 +77,37 @@ Make sure:
 `;
 
         const response = await axios.post(
-            "http://localhost:11434/api/generate",
+            "https://openrouter.ai/api/v1/chat/completions",
             {
-                model: "llama3.2",
-                prompt: prompt,
-                stream: false,
-                format: "json"
+                model: "openai/gpt-oss-20b:free",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 0.2
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json"
+                }
             }
         );
 
-        console.log("AI RAW RESPONSE:", response.data.response);
+        const content =
+            response.data?.choices?.[0]?.message?.content || "";
 
-        const result = JSON.parse(response.data.response);
+        console.log("AI RAW RESPONSE:", content);
+
+        // Remove possible markdown JSON fences
+        const cleanedContent = content
+            .replace(/```json/gi, "")
+            .replace(/```/g, "")
+            .trim();
+
+        const result = JSON.parse(cleanedContent);
 
         // Make sure score is always within valid range
         result.matchScore = Math.max(
