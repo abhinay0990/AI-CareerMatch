@@ -17,12 +17,12 @@ function Login() {
             setLoading(true);
 
             const response = await axios.post(
-                "http://localhost:5000/api/auth/login",
-                {
-                    email,
-                    password
-                }
-            );
+    "https://ai-careermatch-v3d4.onrender.com/api/auth/login",
+    {
+        email,
+        password
+    }
+);
 
             localStorage.setItem("token", response.data.token);
 
