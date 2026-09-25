@@ -14,6 +14,7 @@ const jobRoutes = require("./routes/jobRoutes");
 const matchRoutes = require("./routes/matchRoutes");
 const matchHistoryRoutes = require("./routes/matchHistoryRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const googleAuthRoutes = require("./routes/googleAuthRoutes");
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/match-history", matchHistoryRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/auth", googleAuthRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
