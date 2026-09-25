@@ -111,7 +111,7 @@ function Login() {
             // Send Firebase token
             // to LOCAL Node.js backend
             const response = await axios.post(
-                "http://localhost:5000/api/auth/google",
+                 "https://ai-careermatch-v3d4.onrender.com/api/auth/google",
                 {
                     idToken: firebaseToken
                 }
